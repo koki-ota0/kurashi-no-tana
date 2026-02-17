@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ホーム - 暮らしの棚</title>
+    <style>
+        :root {
+            --background: #FAFAF8;
+            --text-primary: #2C2C2A;
+            --text-secondary: #7A7A76;
+            --primary: #8B7355;
+            --secondary: #C4B5A0;
+            --success: #6B9E7F;
+            --border: #E8E8E6;
+            --surface: #F5F5F3;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+
+        header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 0;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            margin-left: 24px;
+        }
+
+        nav a:hover { color: var(--primary); }
+
+        main { padding: 24px 0; min-height: calc(100vh - 140px); }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .page-title { font-size: 28px; }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+
+        .category-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .category-tab {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--text-secondary);
+            text-decoration: none;
+        }
+
+        .category-tab:hover { border-color: var(--primary); color: var(--primary); }
+        .category-tab.active { background: var(--primary); border-color: var(--primary); color: white; }
+
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .item-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .item-card a { text-decoration: none; color: inherit; }
+
+        .item-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: var(--surface);
+        }
+
+        .item-image-placeholder {
+            width: 100%;
+            height: 200px;
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+        }
+
+        .item-content { padding: 16px; }
+        .item-name { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+
+        .item-meta {
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .item-category {
+            background: var(--surface);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .usage-count { color: var(--success); }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px;
+            color: var(--text-secondary);
+        }
+
+        footer {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 24px 0;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <a href="/" class="logo">暮らしの棚</a>
+            <nav>
+                <a href="/">ホーム</a>
+                <a href="/items/new">アイテム登録</a>
+                <a href="/discovery">発見</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="page-header">
+            <h1 class="page-title">マイ棚</h1>
+            <a href="/items/new" class="btn btn-primary">+ 新規登録</a>
+        </div>
+
+        <div class="category-tabs">
+            <a href="/" class="category-tab" th:classappend="${selectedCategory == 'all'} ? 'active' : ''">すべて</a>
+            <a th:each="cat : ${categories}"
+               th:href="@{/category/{c}(c=${cat})}"
+               th:text="${cat}"
+               th:classappend="${selectedCategory == cat} ? 'active' : ''"
+               class="category-tab">カテゴリ</a>
+        </div>
+
+        <div th:if="${#lists.isEmpty(items)}" class="empty-state">
+            <h3>アイテムがありません</h3>
+            <p>「新規登録」ボタンから最初のアイテムを登録しましょう</p>
+        </div>
+
+        <div th:if="${!#lists.isEmpty(items)}" class="items-grid">
+            <div th:each="item : ${items}" class="item-card">
+                <a th:href="@{/items/{id}(id=${item.id})}">
+                    <div th:if="${#lists.isEmpty(item.photoUrls)}" class="item-image-placeholder">
+                        <span>No Image</span>
+                    </div>
+                    <img th:if="${!#lists.isEmpty(item.photoUrls)}"
+                         th:src="${item.photoUrls[0]}"
+                         alt=""
+                         class="item-image">
+                    <div class="item-content">
+                        <h3 class="item-name" th:text="${item.name}">アイテム名</h3>
+                        <div class="item-meta">
+                            <span class="item-category" th:text="${item.category}">カテゴリ</span>
+                            <span class="usage-count" th:text="${item.usageCount + '回使用'}">0回使用</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>暮らしの棚 © 2024</p>
+        </div>
+    </footer>
+</body>
+</html>

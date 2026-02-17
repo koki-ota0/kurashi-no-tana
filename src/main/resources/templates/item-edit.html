@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>アイテム編集 - 暮らしの棚</title>
+    <style>
+        :root {
+            --background: #FAFAF8;
+            --text-primary: #2C2C2A;
+            --text-secondary: #7A7A76;
+            --primary: #8B7355;
+            --border: #E8E8E6;
+            --surface: #F5F5F3;
+            --error: #C85A54;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+        header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 0; }
+        .header-content { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 24px; font-weight: bold; color: var(--primary); text-decoration: none; }
+        nav a { color: var(--text-secondary); text-decoration: none; margin-left: 24px; }
+        main { padding: 24px 0; }
+        .form-container { max-width: 600px; margin: 0 auto; }
+        .back-link { color: var(--text-secondary); text-decoration: none; margin-bottom: 24px; display: inline-block; }
+        .page-title { font-size: 28px; margin-bottom: 24px; }
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; margin-bottom: 8px; font-weight: 500; }
+        .required { color: var(--error); margin-left: 4px; }
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+        }
+        .form-textarea { min-height: 120px; resize: vertical; }
+        .form-actions { display: flex; gap: 16px; margin-top: 32px; }
+        .btn { padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; text-decoration: none; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-cancel { background: var(--surface); color: var(--text-secondary); border: 1px solid var(--border); }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <a href="/" class="logo">暮らしの棚</a>
+            <nav>
+                <a href="/">ホーム</a>
+                <a href="/items/new">アイテム登録</a>
+                <a href="/discovery">発見</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="form-container">
+            <a th:href="@{/items/{id}(id=${item.id})}" class="back-link">← 詳細に戻る</a>
+            <h1 class="page-title">アイテム編集</h1>
+            <form id="itemForm">
+                <div class="form-group">
+                    <label class="form-label">アイテム名<span class="required">*</span></label>
+                    <input type="text" name="name" class="form-input" required th:value="${item.name}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">カテゴリ<span class="required">*</span></label>
+                    <select name="category" class="form-select" required>
+                        <option value="">選択してください</option>
+                        <option th:each="cat : ${categories}" th:value="${cat}" th:text="${cat}" th:selected="${cat == item.category}">カテゴリ</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">ブランド / ショップ名</label>
+                    <input type="text" name="brand" class="form-input" th:value="${item.brand}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">メモ</label>
+                    <textarea name="memo" class="form-textarea" th:text="${item.memo}"></textarea>
+                </div>
+                <div class="form-actions">
+                    <a th:href="@{/items/{id}(id=${item.id})}" class="btn btn-cancel">キャンセル</a>
+                    <button type="submit" class="btn btn-primary">更新する</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script th:inline="javascript">
+        const itemId = [[${item.id}]];
+        document.getElementById('itemForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const data = {
+                name: formData.get('name'),
+                category: formData.get('category'),
+                brand: formData.get('brand') || null,
+                memo: formData.get('memo') || null
+            };
+            try {
+                const response = await fetch('/api/items/' + itemId, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (response.ok) window.location.href = '/items/' + itemId;
+                else alert('更新に失敗しました');
+            } catch (error) { alert('エラーが発生しました'); }
+        });
+    </script>
+</body>
+</html>

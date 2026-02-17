@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>発見 - 暮らしの棚</title>
+    <style>
+        :root {
+            --background: #FAFAF8;
+            --text-primary: #2C2C2A;
+            --text-secondary: #7A7A76;
+            --primary: #8B7355;
+            --border: #E8E8E6;
+            --surface: #F5F5F3;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+        header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 0; }
+        .header-content { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 24px; font-weight: bold; color: var(--primary); text-decoration: none; }
+        nav a { color: var(--text-secondary); text-decoration: none; margin-left: 24px; }
+        main { padding: 24px 0; }
+        .page-title { font-size: 28px; margin-bottom: 32px; }
+        .section { margin-bottom: 48px; }
+        .section-title { font-size: 20px; margin-bottom: 20px; }
+        .category-grid { display: flex; flex-wrap: wrap; gap: 12px; }
+        .category-chip {
+            display: flex; align-items: center; gap: 8px;
+            padding: 12px 20px; background: white;
+            border: 1px solid var(--border); border-radius: 24px;
+        }
+        .category-count { background: var(--surface); padding: 2px 8px; border-radius: 12px; font-size: 12px; color: var(--text-secondary); }
+        .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+        .item-card { background: white; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+        .item-image { width: 100%; height: 160px; object-fit: cover; background: var(--surface); }
+        .item-image-placeholder { width: 100%; height: 160px; background: var(--surface); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); }
+        .item-content { padding: 16px; }
+        .item-name { font-size: 16px; font-weight: 500; margin-bottom: 8px; }
+        .item-meta { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-secondary); }
+        .empty-state { text-align: center; padding: 48px; color: var(--text-secondary); }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <a href="/" class="logo">暮らしの棚</a>
+            <nav>
+                <a href="/">ホーム</a>
+                <a href="/items/new">アイテム登録</a>
+                <a href="/discovery">発見</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <h1 class="page-title">発見</h1>
+
+        <div class="section">
+            <h2 class="section-title">人気カテゴリ</h2>
+            <div th:if="${#lists.isEmpty(popularCategories)}" class="empty-state">まだデータがありません</div>
+            <div th:if="${!#lists.isEmpty(popularCategories)}" class="category-grid">
+                <div th:each="cat : ${popularCategories}" class="category-chip">
+                    <span th:text="${cat.category}">カテゴリ</span>
+                    <span class="category-count" th:text="${cat.count + '件'}">0件</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">最近登録されたアイテム</h2>
+            <div th:if="${#lists.isEmpty(recentItems)}" class="empty-state">まだアイテムがありません</div>
+            <div th:if="${!#lists.isEmpty(recentItems)}" class="items-grid">
+                <div th:each="item : ${recentItems}" class="item-card">
+                    <div th:if="${#lists.isEmpty(item.photoUrls)}" class="item-image-placeholder">No Image</div>
+                    <img th:if="${!#lists.isEmpty(item.photoUrls)}" th:src="${item.photoUrls[0]}" class="item-image">
+                    <div class="item-content">
+                        <h3 class="item-name" th:text="${item.name}">アイテム名</h3>
+                        <div class="item-meta">
+                            <span th:text="${item.category}">カテゴリ</span>
+                            <span th:text="${#temporals.format(item.createdAt, 'M/d')}">1/1</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
