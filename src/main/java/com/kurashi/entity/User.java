@@ -2,6 +2,7 @@ package com.kurashi.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -19,10 +20,14 @@ public class User {
     @Column(unique = true, nullable = false, length = 64)
     private String openId;
 
-    private String name;
-
-    @Column(length = 320)
+    @Column(nullable = false, length = 100, unique = true)
     private String email;
+
+    @Column(nullable = false, length = 255)
+    private String password;
+
+    @Column(nullable = false, length = 100)
+    private String name;
 
     @Column(length = 64)
     private String loginMethod;

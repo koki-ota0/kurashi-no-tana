@@ -1,7 +1,10 @@
 package com.kurashi.controller;
 
-import com.kurashi.dto.*;
+import com.kurashi.dto.ItemCreateRequest;
+import com.kurashi.dto.ItemResponse;
+import com.kurashi.dto.ItemUpdateRequest;
 import com.kurashi.entity.Item;
+import com.kurashi.service.CurrentUserService;
 import com.kurashi.service.ItemService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,38 +24,43 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ItemController {
 
-    private static final Long DEFAULT_USER_ID = 1L;
     private final ItemService itemService;
+    private final CurrentUserService currentUserService;
 
     @GetMapping
     public List<ItemResponse> list() {
-        return itemService.getUserItems(DEFAULT_USER_ID).stream()
+        Long userId = currentUserService.getCurrentUserId();
+        return itemService.getUserItems(userId).stream()
                 .map(ItemResponse::fromEntity)
                 .collect(Collectors.toList());
     }
 
     @GetMapping("/category/{category}")
     public List<ItemResponse> byCategory(@PathVariable String category) {
-        return itemService.getItemsByCategory(DEFAULT_USER_ID, category).stream()
+        Long userId = currentUserService.getCurrentUserId();
+        return itemService.getItemsByCategory(userId, category).stream()
                 .map(ItemResponse::fromEntity)
                 .collect(Collectors.toList());
     }
 
     @GetMapping("/categories")
     public List<String> categories() {
-        return itemService.getItemCategories(DEFAULT_USER_ID);
+        Long userId = currentUserService.getCurrentUserId();
+        return itemService.getItemCategories(userId);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ItemResponse> detail(@PathVariable Long id) {
-        return itemService.getItemById(id)
+        Long userId = currentUserService.getCurrentUserId();
+        return itemService.getUserItemById(userId, id)
                 .map(item -> ResponseEntity.ok(ItemResponse.fromEntity(item)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
     public ItemResponse create(@Valid @RequestBody ItemCreateRequest request) {
-        Item item = itemService.createItem(DEFAULT_USER_ID, request);
+        Long userId = currentUserService.getCurrentUserId();
+        Item item = itemService.createItem(userId, request);
         return ItemResponse.fromEntity(item);
     }
 
@@ -60,8 +68,9 @@ public class ItemController {
     public ResponseEntity<ItemResponse> update(
             @PathVariable Long id,
             @Valid @RequestBody ItemUpdateRequest request) {
+        Long userId = currentUserService.getCurrentUserId();
         try {
-            Item item = itemService.updateItem(id, request);
+            Item item = itemService.updateItem(userId, id, request);
             return ResponseEntity.ok(ItemResponse.fromEntity(item));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
@@ -70,7 +79,8 @@ public class ItemController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        itemService.deleteItem(id);
+        Long userId = currentUserService.getCurrentUserId();
+        itemService.deleteItem(userId, id);
         return ResponseEntity.noContent().build();
     }
 

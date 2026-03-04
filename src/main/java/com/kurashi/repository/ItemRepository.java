@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ItemRepository extends JpaRepository<Item, Long> {
 
@@ -13,11 +14,11 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
     List<Item> findByUserIdAndCategoryOrderByCreatedAtDesc(Long userId, String category);
 
+    Optional<Item> findByIdAndUserId(Long id, Long userId);
+
     @Query("SELECT DISTINCT i.category FROM Item i WHERE i.userId = :userId")
     List<String> findDistinctCategoriesByUserId(@Param("userId") Long userId);
 
-    List<Item> findAllByOrderByCreatedAtDesc();
-
-    @Query("SELECT i.category, COUNT(i) as count FROM Item i GROUP BY i.category ORDER BY count DESC")
-    List<Object[]> findCategoryCounts();
+    @Query("SELECT i.category, COUNT(i) as count FROM Item i WHERE i.userId = :userId GROUP BY i.category ORDER BY count DESC")
+    List<Object[]> findCategoryCountsByUserId(@Param("userId") Long userId);
 }

@@ -5,7 +5,7 @@ import com.kurashi.dto.ItemCreateRequest;
 import com.kurashi.dto.ItemUpdateRequest;
 import com.kurashi.entity.Item;
 import com.kurashi.repository.ItemRepository;
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
@@ -46,8 +46,8 @@ public class ItemService {
         return itemRepository.findDistinctCategoriesByUserId(userId);
     }
 
-    public Optional<Item> getItemById(Long id) {
-        return itemRepository.findById(id);
+    public Optional<Item> getUserItemById(Long userId, Long id) {
+        return itemRepository.findByIdAndUserId(id, userId);
     }
 
     @Transactional
@@ -75,8 +75,8 @@ public class ItemService {
     }
 
     @Transactional
-    public Item updateItem(Long id, ItemUpdateRequest request) {
-        Item item = itemRepository.findById(id)
+    public Item updateItem(Long userId, Long id, ItemUpdateRequest request) {
+        Item item = itemRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new RuntimeException("Item not found: " + id));
 
         if (request.getName() != null) {
@@ -103,8 +103,10 @@ public class ItemService {
     }
 
     @Transactional
-    public void deleteItem(Long id) {
-        itemRepository.deleteById(id);
+    public void deleteItem(Long userId, Long id) {
+        Item item = itemRepository.findByIdAndUserId(id, userId)
+                .orElseThrow(() -> new RuntimeException("Item not found: " + id));
+        itemRepository.delete(item);
     }
 
     public String saveImage(MultipartFile file) throws IOException {
@@ -140,21 +142,21 @@ public class ItemService {
     }
 
     @Transactional
-    public void incrementUsageCount(Long itemId) {
-        Item item = itemRepository.findById(itemId)
+    public void incrementUsageCount(Long userId, Long itemId) {
+        Item item = itemRepository.findByIdAndUserId(itemId, userId)
                 .orElseThrow(() -> new RuntimeException("Item not found: " + itemId));
         item.setUsageCount(item.getUsageCount() + 1);
         itemRepository.save(item);
     }
 
-    public List<Item> getRecentItems(int limit) {
-        return itemRepository.findAllByOrderByCreatedAtDesc().stream()
+    public List<Item> getRecentItems(Long userId, int limit) {
+        return itemRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
                 .limit(limit)
                 .collect(Collectors.toList());
     }
 
-    public List<CategoryCount> getPopularCategories(int limit) {
-        return itemRepository.findCategoryCounts().stream()
+    public List<CategoryCount> getPopularCategories(Long userId, int limit) {
+        return itemRepository.findCategoryCountsByUserId(userId).stream()
                 .limit(limit)
                 .map(row -> new CategoryCount((String) row[0], (Long) row[1]))
                 .collect(Collectors.toList());

@@ -16,8 +16,8 @@ public class UsageLogService {
     private final UsageLogRepository usageLogRepository;
     private final ItemService itemService;
 
-    public List<UsageLog> getItemUsageLogs(Long itemId) {
-        return usageLogRepository.findByItemIdOrderByUsedAtDesc(itemId);
+    public List<UsageLog> getItemUsageLogs(Long userId, Long itemId) {
+        return usageLogRepository.findByItemIdAndUserIdOrderByUsedAtDesc(itemId, userId);
     }
 
     public List<UsageLog> getUserUsageLogs(Long userId) {
@@ -26,6 +26,9 @@ public class UsageLogService {
 
     @Transactional
     public UsageLog createUsageLog(Long userId, UsageLogCreateRequest request) {
+        itemService.getUserItemById(userId, request.getItemId())
+                .orElseThrow(() -> new RuntimeException("Item not found: " + request.getItemId()));
+
         UsageLog log = UsageLog.builder()
                 .itemId(request.getItemId())
                 .userId(userId)
@@ -33,8 +36,7 @@ public class UsageLogService {
                 .build();
 
         UsageLog savedLog = usageLogRepository.save(log);
-
-        itemService.incrementUsageCount(request.getItemId());
+        itemService.incrementUsageCount(userId, request.getItemId());
 
         return savedLog;
     }

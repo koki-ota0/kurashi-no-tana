@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface UsageLogRepository extends JpaRepository<UsageLog, Long> {
 
-    List<UsageLog> findByItemIdOrderByUsedAtDesc(Long itemId);
+    List<UsageLog> findByItemIdAndUserIdOrderByUsedAtDesc(Long itemId, Long userId);
 
     List<UsageLog> findByUserIdOrderByUsedAtDesc(Long userId);
 

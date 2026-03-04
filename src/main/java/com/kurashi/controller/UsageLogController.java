@@ -3,6 +3,7 @@ package com.kurashi.controller;
 import com.kurashi.dto.UsageLogCreateRequest;
 import com.kurashi.dto.UsageLogResponse;
 import com.kurashi.entity.UsageLog;
+import com.kurashi.service.CurrentUserService;
 import com.kurashi.service.UsageLogService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,19 +17,21 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UsageLogController {
 
-    private static final Long DEFAULT_USER_ID = 1L;
     private final UsageLogService usageLogService;
+    private final CurrentUserService currentUserService;
 
     @GetMapping("/item/{itemId}")
     public List<UsageLogResponse> listByItem(@PathVariable Long itemId) {
-        return usageLogService.getItemUsageLogs(itemId).stream()
+        Long userId = currentUserService.getCurrentUserId();
+        return usageLogService.getItemUsageLogs(userId, itemId).stream()
                 .map(UsageLogResponse::fromEntity)
                 .collect(Collectors.toList());
     }
 
     @PostMapping
     public UsageLogResponse create(@Valid @RequestBody UsageLogCreateRequest request) {
-        UsageLog log = usageLogService.createUsageLog(DEFAULT_USER_ID, request);
+        Long userId = currentUserService.getCurrentUserId();
+        UsageLog log = usageLogService.createUsageLog(userId, request);
         return UsageLogResponse.fromEntity(log);
     }
 }
