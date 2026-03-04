@@ -1,7 +1,9 @@
 spring:
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/kurashi}
-    username: ${DB_USERNAME:postgres}
+    username: ${DB_USERNAME:koki}
     password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
 
@@ -20,3 +22,7 @@ spring:
 
 server:
   port: ${SERVER_PORT:8080}
+
+file:
+  upload:
+    dir: ${FILE_UPLOAD_DIR:./uploads}

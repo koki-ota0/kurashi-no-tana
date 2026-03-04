@@ -28,6 +28,15 @@ public class Item {
     @Column(length = 255)
     private String brand;
 
+    @Column(length = 100)
+    private String salesLocation;  // 販売地
+
+    @Column
+    private Integer price;  // 値段
+
+    @Column(length = 255)
+    private String maker;  // 窯元
+
     @Column(columnDefinition = "TEXT")
     private String memo;
 

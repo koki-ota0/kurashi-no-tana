@@ -16,6 +16,9 @@ public class ItemResponse {
     private String name;
     private String category;
     private String brand;
+    private String salesLocation;  // 販売地
+    private Integer price;  // 値段
+    private String maker;  // 窯元
     private String memo;
     private List<String> photoUrls;
     private Integer usageCount;
@@ -31,6 +34,9 @@ public class ItemResponse {
         response.setName(item.getName());
         response.setCategory(item.getCategory());
         response.setBrand(item.getBrand());
+        response.setSalesLocation(item.getSalesLocation());
+        response.setPrice(item.getPrice());
+        response.setMaker(item.getMaker());
         response.setMemo(item.getMemo());
         response.setUsageCount(item.getUsageCount());
         response.setCreatedAt(item.getCreatedAt());

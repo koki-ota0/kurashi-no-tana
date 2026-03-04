@@ -66,6 +66,9 @@ public class ItemService {
                 .name(request.getName())
                 .category(request.getCategory())
                 .brand(request.getBrand())
+                .salesLocation(request.getSalesLocation())
+                .price(request.getPrice())
+                .maker(request.getMaker())
                 .memo(request.getMemo())
                 .photoUrls(photoUrlsJson)
                 .usageCount(0)
@@ -87,6 +90,15 @@ public class ItemService {
         }
         if (request.getBrand() != null) {
             item.setBrand(request.getBrand());
+        }
+        if (request.getSalesLocation() != null) {
+            item.setSalesLocation(request.getSalesLocation());
+        }
+        if (request.getPrice() != null) {
+            item.setPrice(request.getPrice());
+        }
+        if (request.getMaker() != null) {
+            item.setMaker(request.getMaker());
         }
         if (request.getMemo() != null) {
             item.setMemo(request.getMemo());

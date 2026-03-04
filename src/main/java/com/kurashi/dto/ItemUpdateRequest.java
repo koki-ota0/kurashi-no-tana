@@ -17,6 +17,14 @@ public class ItemUpdateRequest {
     @Size(max = 255, message = "ブランドは255文字以内で入力してください")
     private String brand;
 
+    @Size(max = 100, message = "販売地は100文字以内で入力してください")
+    private String salesLocation;  // 販売地
+
+    private Integer price;  // 値段
+
+    @Size(max = 255, message = "窯元は255文字以内で入力してください")
+    private String maker;  // 窯元
+
     private String memo;
 
     private List<String> photoUrls;

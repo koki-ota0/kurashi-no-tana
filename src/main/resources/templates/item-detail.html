@@ -99,6 +99,18 @@
                     <div class="info-label">ブランド</div>
                     <div class="info-value" th:text="${item.brand}">ブランド名</div>
                 </div>
+                <div class="info-row" th:if="${item.salesLocation}">
+                    <div class="info-label">販売地</div>
+                    <div class="info-value" th:text="${item.salesLocation}">販売地</div>
+                </div>
+                <div class="info-row" th:if="${item.price}">
+                    <div class="info-label">値段</div>
+                    <div class="info-value" th:text="${item.price + '円'}">1000円</div>
+                </div>
+                <div class="info-row" th:if="${item.maker}">
+                    <div class="info-label">窯元</div>
+                    <div class="info-value" th:text="${item.maker}">窯元名</div>
+                </div>
                 <div class="info-row" th:if="${item.memo}">
                     <div class="info-label">メモ</div>
                     <div class="info-value" th:text="${item.memo}">メモ</div>

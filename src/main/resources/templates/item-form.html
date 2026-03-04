@@ -152,6 +152,18 @@
                     <input type="text" name="brand" class="form-input" maxlength="255">
                 </div>
                 <div class="form-group">
+                    <label class="form-label">販売地</label>
+                    <input type="text" name="salesLocation" class="form-input" maxlength="100" placeholder="例: 東京都、京都府、フランス">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">値段（円）</label>
+                    <input type="number" name="price" class="form-input" min="0" placeholder="例: 1500">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">窯元</label>
+                    <input type="text" name="maker" class="form-input" maxlength="255" placeholder="例: 翁明窯元">
+                </div>
+                <div class="form-group">
                     <label class="form-label">メモ</label>
                     <textarea name="memo" class="form-textarea" placeholder="自由にメモを記入できます"></textarea>
                 </div>
@@ -272,6 +284,9 @@
                 name: formData.get('name'),
                 category: formData.get('category'),
                 brand: formData.get('brand') || null,
+                salesLocation: formData.get('salesLocation') || null,
+                price: formData.get('price') ? parseInt(formData.get('price')) : null,
+                maker: formData.get('maker') || null,
                 memo: formData.get('memo') || null,
                 photoUrls: photoUrls
             };
