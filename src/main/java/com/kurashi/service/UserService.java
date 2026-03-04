@@ -3,17 +3,20 @@ package com.kurashi.service;
 import com.kurashi.entity.User;
 import com.kurashi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public Optional<User> getUserById(Long id) {
         return userRepository.findById(id);
@@ -25,6 +28,24 @@ public class UserService {
 
     public Optional<User> getUserByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+
+    @Transactional
+    public User register(String name, String email, String rawPassword) {
+        if (userRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException("Email already exists");
+        }
+
+        User user = User.builder()
+                .openId("local-" + UUID.randomUUID())
+                .name(name)
+                .email(email)
+                .password(passwordEncoder.encode(rawPassword))
+                .loginMethod("local")
+                .role(User.Role.USER)
+                .build();
+
+        return userRepository.save(user);
     }
 
     @Transactional
@@ -44,24 +65,7 @@ public class UserService {
             }
             existing.setLastSignedIn(LocalDateTime.now());
             return userRepository.save(existing);
-        } else {
-            return userRepository.save(user);
         }
-    }
-
-    @Transactional
-    public User createDefaultUser() {
-        Optional<User> existingUser = userRepository.findById(1L);
-        if (existingUser.isPresent()) {
-            return existingUser.get();
-        }
-
-        User defaultUser = User.builder()
-                .openId("default-user")
-                .name("デフォルトユーザー")
-                .email("default@example.com")
-                .role(User.Role.USER)
-                .build();
-        return userRepository.save(defaultUser);
+        return userRepository.save(user);
     }
 }

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ログイン - 暮らしの棚</title>
+    <style>
+        body { font-family: sans-serif; background: #FAFAF8; display: flex; justify-content: center; padding: 40px 16px; }
+        .card { width: 100%; max-width: 420px; background: white; border: 1px solid #E8E8E6; border-radius: 12px; padding: 24px; }
+        h1 { margin: 0 0 16px; }
+        label { display: block; margin: 12px 0 6px; }
+        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
+        button { margin-top: 16px; width: 100%; padding: 12px; border: 0; background: #8B7355; color: white; border-radius: 8px; }
+        .msg { margin: 8px 0; color: #C85A54; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>ログイン</h1>
+    <div th:if="${param.error}" class="msg">メールアドレスまたはパスワードが正しくありません。</div>
+    <div th:if="${param.logout}">ログアウトしました。</div>
+    <div th:if="${registered}">登録が完了しました。ログインしてください。</div>
+    <form th:action="@{/login}" method="post">
+        <label>メールアドレス</label>
+        <input type="email" name="username" required>
+        <label>パスワード</label>
+        <input type="password" name="password" required>
+        <button type="submit">ログイン</button>
+    </form>
+    <p><a href="/register">新規登録はこちら</a></p>
+</div>
+</body>
+</html>

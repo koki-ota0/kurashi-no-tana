@@ -1,13 +1,14 @@
 package com.kurashi.controller;
 
 import com.kurashi.dto.ItemResponse;
-import com.kurashi.entity.Item;
+import com.kurashi.service.CurrentUserService;
 import com.kurashi.service.ItemService;
 import com.kurashi.service.UsageLogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,16 +17,17 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class WebController {
 
-    private static final Long DEFAULT_USER_ID = 1L;
     private final ItemService itemService;
     private final UsageLogService usageLogService;
+    private final CurrentUserService currentUserService;
 
     @GetMapping("/")
     public String home(Model model) {
-        List<ItemResponse> items = itemService.getUserItems(DEFAULT_USER_ID).stream()
+        Long userId = currentUserService.getCurrentUserId();
+        List<ItemResponse> items = itemService.getUserItems(userId).stream()
                 .map(ItemResponse::fromEntity)
                 .collect(Collectors.toList());
-        List<String> categories = itemService.getItemCategories(DEFAULT_USER_ID);
+        List<String> categories = itemService.getItemCategories(userId);
 
         model.addAttribute("items", items);
         model.addAttribute("categories", categories);
@@ -35,10 +37,11 @@ public class WebController {
 
     @GetMapping("/category/{category}")
     public String byCategory(@PathVariable String category, Model model) {
-        List<ItemResponse> items = itemService.getItemsByCategory(DEFAULT_USER_ID, category).stream()
+        Long userId = currentUserService.getCurrentUserId();
+        List<ItemResponse> items = itemService.getItemsByCategory(userId, category).stream()
                 .map(ItemResponse::fromEntity)
                 .collect(Collectors.toList());
-        List<String> categories = itemService.getItemCategories(DEFAULT_USER_ID);
+        List<String> categories = itemService.getItemCategories(userId);
 
         model.addAttribute("items", items);
         model.addAttribute("categories", categories);
@@ -54,10 +57,11 @@ public class WebController {
 
     @GetMapping("/items/{id}")
     public String itemDetail(@PathVariable Long id, Model model) {
-        return itemService.getItemById(id)
+        Long userId = currentUserService.getCurrentUserId();
+        return itemService.getUserItemById(userId, id)
                 .map(item -> {
                     model.addAttribute("item", ItemResponse.fromEntity(item));
-                    model.addAttribute("usageLogs", usageLogService.getItemUsageLogs(id));
+                    model.addAttribute("usageLogs", usageLogService.getItemUsageLogs(userId, id));
                     return "item-detail";
                 })
                 .orElse("redirect:/");
@@ -65,7 +69,8 @@ public class WebController {
 
     @GetMapping("/items/{id}/edit")
     public String editItemForm(@PathVariable Long id, Model model) {
-        return itemService.getItemById(id)
+        Long userId = currentUserService.getCurrentUserId();
+        return itemService.getUserItemById(userId, id)
                 .map(item -> {
                     model.addAttribute("item", ItemResponse.fromEntity(item));
                     model.addAttribute("categories", List.of("皿", "カップ", "花器", "雑貨"));
@@ -76,10 +81,10 @@ public class WebController {
 
     @GetMapping("/discovery")
     public String discovery(Model model) {
-        model.addAttribute("recentItems", itemService.getRecentItems(20).stream()
+        model.addAttribute("recentItems", itemService.getRecentItems(currentUserService.getCurrentUserId(), 20).stream()
                 .map(ItemResponse::fromEntity)
                 .collect(Collectors.toList()));
-        model.addAttribute("popularCategories", itemService.getPopularCategories(10));
+        model.addAttribute("popularCategories", itemService.getPopularCategories(currentUserService.getCurrentUserId(), 10));
         return "discovery";
     }
 }
