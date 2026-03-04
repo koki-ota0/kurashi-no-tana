@@ -55,6 +55,9 @@
         .usage-scene { background: var(--secondary); padding: 2px 8px; border-radius: 4px; font-size: 12px; }
         .usage-date { color: var(--text-secondary); font-size: 14px; }
         .empty-logs { text-align: center; padding: 24px; color: var(--text-secondary); }
+        .image-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-bottom: 24px; }
+        .gallery-image { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; cursor: pointer; }
+        .gallery-image:hover { opacity: 0.8; }
     </style>
 </head>
 <body>
@@ -86,6 +89,10 @@
 
             <div th:if="${#lists.isEmpty(item.photoUrls)}" class="no-image">No Image</div>
             <img th:if="${!#lists.isEmpty(item.photoUrls)}" th:src="${item.photoUrls[0]}" class="main-image">
+
+            <div th:if="${!#lists.isEmpty(item.photoUrls) && item.photoUrls.size() > 1}" class="image-gallery">
+                <img th:each="photoUrl : ${item.photoUrls}" th:src="${photoUrl}" class="gallery-image" :onclick="showImage(this.src)">
+            </div>
 
             <div class="info-section">
                 <div class="info-row" th:if="${item.brand}">
@@ -141,6 +148,10 @@
                 selectedScene = this.dataset.scene;
             });
         });
+
+        function showImage(src) {
+            document.querySelector('.main-image').src = src;
+        }
 
         async function recordUsage() {
             try {

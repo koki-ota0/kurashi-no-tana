@@ -5,11 +5,19 @@ import com.kurashi.service.CurrentUserService;
 import com.kurashi.service.ItemService;
 import com.kurashi.service.UsageLogService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,6 +28,9 @@ public class WebController {
     private final ItemService itemService;
     private final UsageLogService usageLogService;
     private final CurrentUserService currentUserService;
+
+    @Value("${file.upload.dir}")
+    private String uploadDir;
 
     @GetMapping("/")
     public String home(Model model) {
@@ -86,5 +97,31 @@ public class WebController {
                 .collect(Collectors.toList()));
         model.addAttribute("popularCategories", itemService.getPopularCategories(currentUserService.getCurrentUserId(), 10));
         return "discovery";
+    }
+
+    @GetMapping("/images/{filename}")
+    public ResponseEntity<byte[]> getImage(@PathVariable String filename) throws IOException {
+        Path filepath = Paths.get(uploadDir).resolve(filename);
+        
+        if (!Files.exists(filepath)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        byte[] imageData = Files.readAllBytes(filepath);
+        
+        // ファイル拡張子からContent-Typeを判定
+        MediaType mediaType = MediaType.IMAGE_JPEG;
+        if (filename.endsWith(".png")) {
+            mediaType = MediaType.IMAGE_PNG;
+        } else if (filename.endsWith(".gif")) {
+            mediaType = MediaType.IMAGE_GIF;
+        } else if (filename.endsWith(".webp")) {
+            mediaType = MediaType.valueOf("image/webp");
+        }
+
+        return ResponseEntity.ok()
+                .contentType(mediaType)
+                .header(HttpHeaders.CACHE_CONTROL, "public, max-age=86400")
+                .body(imageData);
     }
 }

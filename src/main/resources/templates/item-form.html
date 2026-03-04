@@ -46,6 +46,67 @@
         }
         .form-textarea { min-height: 120px; resize: vertical; }
         .form-actions { display: flex; gap: 16px; margin-top: 32px; }
+        .photo-upload-section {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .photo-upload-section:hover {
+            border-color: var(--primary);
+            background: var(--surface);
+        }
+        .photo-upload-section.dragging {
+            border-color: var(--primary);
+            background: var(--surface);
+        }
+        .photo-input { display: none; }
+        .photo-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .photo-item {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--surface);
+        }
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .photo-item .remove-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(200, 90, 84, 0.9);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .photo-item .remove-btn:hover {
+            background: var(--error);
+        }
+        .upload-hint {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 8px;
+        }
         .btn {
             display: inline-block;
             padding: 12px 24px;
@@ -94,6 +155,15 @@
                     <label class="form-label">メモ</label>
                     <textarea name="memo" class="form-textarea" placeholder="自由にメモを記入できます"></textarea>
                 </div>
+                <div class="form-group">
+                    <label class="form-label">画像</label>
+                    <div id="photoUploadZone" class="photo-upload-section">
+                        <div>📁 クリックまたはドラッグ＆ドロップで画像をアップロード</div>
+                        <div class="upload-hint">対応形式: JPG, PNG, GIF, WebP｜最大10MB</div>
+                    </div>
+                    <input type="file" id="photoInput" class="photo-input" accept="image/*" multiple>
+                    <div id="photoPreview" class="photo-preview"></div>
+                </div>
                 <div class="form-actions">
                     <a href="/" class="btn btn-cancel">キャンセル</a>
                     <button type="submit" class="btn btn-primary">登録する</button>
@@ -103,16 +173,109 @@
     </main>
 
     <script>
+        let uploadedPhotoUrls = [];
+
+        const uploadZone = document.getElementById('photoUploadZone');
+        const photoInput = document.getElementById('photoInput');
+        const photoPreview = document.getElementById('photoPreview');
+
+        // クリックでファイル選択を開く
+        uploadZone.addEventListener('click', () => photoInput.click());
+
+        // ファイル選択時の処理
+        photoInput.addEventListener('change', (e) => {
+            handleFileSelect(e.target.files);
+        });
+
+        // ドラッグ&ドロップの処理
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragging');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragging');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragging');
+            handleFileSelect(e.dataTransfer.files);
+        });
+
+        async function handleFileSelect(files) {
+            for (const file of files) {
+                // ファイルサイズチェック (10MB)
+                if (file.size > 10485760) {
+                    alert(`${file.name} は10MBを超えています`);
+                    continue;
+                }
+
+                // 画像形式チェック
+                if (!file.type.startsWith('image/')) {
+                    alert(`${file.name} は画像ファイルではありません`);
+                    continue;
+                }
+
+                // 画像をプレビュー表示
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    addPhotoPreview(e.target.result, file.name);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function addPhotoPreview(src, filename) {
+            const item = document.createElement('div');
+            item.className = 'photo-item';
+            item.innerHTML = `<img src="${src}" alt="${filename}">
+                            <button type="button" class="remove-btn">×</button>`;
+            
+            const removeBtn = item.querySelector('.remove-btn');
+            removeBtn.addEventListener('click', () => {
+                item.remove();
+            });
+
+            photoPreview.appendChild(item);
+        }
+
         document.getElementById('itemForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const formData = new FormData(this);
+            
+            // 選択されたファイルをアップロード
+            const files = photoInput.files;
+            const photoUrls = [...uploadedPhotoUrls];
+
+            for (const file of files) {
+                try {
+                    // 画像ファイルをアップロード
+                    const uploadFormData = new FormData();
+                    uploadFormData.append('file', file);
+
+                    const uploadResponse = await fetch(`/api/items/0/upload-image`, {
+                        method: 'POST',
+                        body: uploadFormData
+                    });
+
+                    if (uploadResponse.ok) {
+                        const uploadData = await uploadResponse.json();
+                        photoUrls.push(uploadData.photoUrl);
+                    }
+                } catch (error) {
+                    console.error('画像アップロードエラー:', error);
+                }
+            }
+
             const data = {
                 name: formData.get('name'),
                 category: formData.get('category'),
                 brand: formData.get('brand') || null,
                 memo: formData.get('memo') || null,
-                photoUrls: []
+                photoUrls: photoUrls
             };
+
             try {
                 const response = await fetch('/api/items', {
                     method: 'POST',
@@ -126,6 +289,7 @@
                 }
             } catch (error) {
                 alert('エラーが発生しました');
+                console.error(error);
             }
         });
     </script>

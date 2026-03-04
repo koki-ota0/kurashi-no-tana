@@ -7,11 +7,21 @@ import com.kurashi.entity.Item;
 import com.kurashi.repository.ItemRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,6 +30,9 @@ public class ItemService {
 
     private final ItemRepository itemRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Value("${file.upload.dir}")
+    private String uploadDir;
 
     public List<Item> getUserItems(Long userId) {
         return itemRepository.findByUserIdOrderByCreatedAtDesc(userId);
@@ -94,6 +107,38 @@ public class ItemService {
         Item item = itemRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new RuntimeException("Item not found: " + id));
         itemRepository.delete(item);
+    }
+
+    public String saveImage(MultipartFile file) throws IOException {
+        if (file == null || file.isEmpty()) {
+            return null;
+        }
+
+        // ディレクトリが存在しない場合は作成
+        Path uploadPath = Paths.get(uploadDir);
+        Files.createDirectories(uploadPath);
+
+        // UUIDを使用してファイル名を生成
+        String originalFilename = file.getOriginalFilename();
+        String extension = originalFilename != null ? originalFilename.substring(originalFilename.lastIndexOf(".")) : ".jpg";
+        String filename = UUID.randomUUID() + extension;
+
+        // ファイルを保存
+        Path filepath = uploadPath.resolve(filename);
+        Files.write(filepath, file.getBytes());
+
+        // 相対パスを返す
+        return "/images/" + filename;
+    }
+
+    public void deleteImage(String photoUrl) throws IOException {
+        if (photoUrl == null || !photoUrl.startsWith("/images/")) {
+            return;
+        }
+
+        String filename = photoUrl.replace("/images/", "");
+        Path filepath = Paths.get(uploadDir).resolve(filename);
+        Files.deleteIfExists(filepath);
     }
 
     @Transactional
