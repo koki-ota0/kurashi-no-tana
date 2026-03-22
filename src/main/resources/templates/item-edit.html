@@ -77,10 +77,6 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">ブランド / ショップ名</label>
-                    <input type="text" name="brand" class="form-input" th:value="${item.brand}">
-                </div>
-                <div class="form-group">
                     <label class="form-label">販売地</label>
                     <input type="text" name="salesLocation" class="form-input" th:value="${item.salesLocation}" placeholder="例: 東京都、京都府、フランス">
                 </div>
@@ -112,7 +108,6 @@
             const data = {
                 name: formData.get('name'),
                 category: formData.get('category'),
-                brand: formData.get('brand') || null,
                 salesLocation: formData.get('salesLocation') || null,
                 price: formData.get('price') ? parseInt(formData.get('price')) : null,
                 maker: formData.get('maker') || null,

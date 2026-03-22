@@ -25,9 +25,6 @@ public class Item {
     @Column(nullable = false, length = 100)
     private String category;
 
-    @Column(length = 255)
-    private String brand;
-
     @Column(length = 100)
     private String salesLocation;  // 販売地
 

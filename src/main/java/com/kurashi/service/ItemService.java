@@ -65,7 +65,6 @@ public class ItemService {
                 .userId(userId)
                 .name(request.getName())
                 .category(request.getCategory())
-                .brand(request.getBrand())
                 .salesLocation(request.getSalesLocation())
                 .price(request.getPrice())
                 .maker(request.getMaker())
@@ -87,9 +86,6 @@ public class ItemService {
         }
         if (request.getCategory() != null) {
             item.setCategory(request.getCategory());
-        }
-        if (request.getBrand() != null) {
-            item.setBrand(request.getBrand());
         }
         if (request.getSalesLocation() != null) {
             item.setSalesLocation(request.getSalesLocation());
